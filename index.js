@@ -15,171 +15,109 @@ async function drawImage() {
     {
       type: "input",
       name: "width",
-      message: "Enter the width of the picture",
+      message: "Enter the width of the picture:",
       default: "512",
     },
     {
       type: "input",
       name: "height",
-      message: "Enter the height of the picture",
+      message: "Enter the height of the picture:",
       default: "512",
     },
     {
       type: "input",
       name: "gravity",
-      message: "What is the strength of gravity",
+      message: "Enter the strength of gravity:",
       default: "10",
     },
     {
       type: "input",
-      name: "x1",
-      message: "Enter the X position of the first point (0 is left)",
-      default: "128",
+      name: "numPoints",
+      message: "Enter the number of gravitational points:",
+      default: "2",
     },
     {
-      type: "input",
-      name: "y1",
-      message: "Enter the Y position of the first point (0 is top)",
-      default: "256",
+      type: "confirm",
+      name: "manual",
+      message: "Do you want to manually choose points' positions?",
+      default: true,
     },
     {
-      type: "input",
-      name: "x2",
-      message: "Enter the X position of the second point (0 is left)",
-      default: "384",
+      type: "confirm",
+      name: "randomcolors",
+      message: "Do you want to shuffle colors randomly?",
+      default: false,
     },
     {
-      type: "input",
-      name: "y2",
-      message: "Enter the Y position of the second point (0 is top)",
-      default: "256",
-    },
-    {
-      type: "input",
-      name: "third",
-      message: "Do you want another point, to make 3 total? (y/n)",
-      default: "n",
+      type: "confirm",
+      name: "hidepoints",
+      message: "Do you want to hide the gravitational points?",
+      default: true,
     },
   ]);
 
   const width = parseInt(answers.width);
   const height = parseInt(answers.height);
   const gravity = parseFloat(answers.gravity);
-  let points = [
-    [parseInt(answers.x1), parseInt(answers.y1)],
-    [parseInt(answers.x2), parseInt(answers.y2)],
-  ];
+  const numPoints = parseInt(answers.numPoints);
 
-let answers2
+  let points = [];
 
-  if (answers.third == "y") {
-    let answers2 = await inquirer.prompt([
-      {
-        type: "input",
-        name: "x3",
-        message: "Enter the X position of the third point (0 is left)",
-        default: "256",
-      },
-      {
-        type: "input",
-        name: "y3",
-        message: "Enter the Y position of the third point (0 is top)",
-        default: "128",
-      },
-      {
-        type: "input",
-        name: "fourth",
-        message: "Do you want another point, to make 4 total? (y/n)",
-        default: "n",
-      },
-    ]);
-    points.push([parseInt(answers2.x3), parseInt(answers2.y3)]);
-    if (answers2.fourth == "y") {
-      const answers3 = await inquirer.prompt([
+  if (answers.manual) {
+    for (let i = 0; i < numPoints; i++) {
+      const pointAnswer = await inquirer.prompt([
         {
           type: "input",
-          name: "x4",
-          message: "Enter the X position of the fourth point (0 is left)",
-          default: "256",
+          name: "x",
+          message: `Enter the X position for point ${i + 1}:`,
+          default: Math.floor(width / 2),
         },
         {
           type: "input",
-          name: "y4",
-          message: "Enter the Y position of the fourth point (0 is top)",
-          default: "384",
+          name: "y",
+          message: `Enter the Y position for point ${i + 1}:`,
+          default: Math.floor(height / 2),
         },
       ]);
-      points.push([parseInt(answers3.x4), parseInt(answers3.y4)]);
+      points.push([parseInt(pointAnswer.x), parseInt(pointAnswer.y)]);
+    }
+  } else {
+    for (let i = 0; i < numPoints; i++) {
+      const randX = Math.floor(Math.random() * width);
+      const randY = Math.floor(Math.random() * height);
+      points.push([randX, randY]);
     }
   }
 
-  let colors = [
-    [0, 0, 0, 255],
-    [255, 0, 0, 255],
-    [0, 255, 0, 255],
-    [0, 0, 255, 255],
-    [255, 255, 0, 255],
-  ];
+  let colors = [[0, 0, 0, 255]];
 
-  const answers4 = await inquirer.prompt([
-    {
-      type: "input",
-      name: "color0",
-      message: "What color should represent points that never touched a point?",
-      default: "000000",
-    },
-    {
-      type: "input",
-      name: "color1",
-      message: "What color should the first point represent?",
-      default: "FF0000",
-    },
-    {
-      type: "input",
-      name: "color2",
-      message: "What color should the second point represent?",
-      default: "00FF00",
-    },
-  ]);
+  let paletteLines = [];
 
-  colors[0] = hexToRGBA(answers4.color0);
-  colors[1] = hexToRGBA(answers4.color1);
-  colors[2] = hexToRGBA(answers4.color2);
+  try {
+    const rawData = fs.readFileSync(
+      path.join(__dirname, "palette.txt"),
+      "utf8"
+    );
 
-  if (answers.third == "y") {
-    const answers5 = await inquirer.prompt([
-      {
-        type: "input",
-        name: "color3",
-        message: "What color should the third point represent?",
-        default: "0000FF",
-      },
-    ]);
-
-    colors[3] = hexToRGBA(answers5.color3);
-
-    if (answers2?.fourth == "y") {
-      const answers6 = await inquirer.prompt([
-        {
-          type: "input",
-          name: "color4",
-          message: "What color should the fourth point represent?",
-          default: "FFFF00",
-        },
-      ]);
-
-      colors[4] = hexToRGBA(answers6.color4);
-    }
+    paletteLines = rawData
+      .split(/\r?\n/)
+      .map((line) => line.trim().replace(/^#/, ""))
+      .filter((hex) => /^[0-9A-Fa-f]{6}$/.test(hex));
+  } catch (err) {
+    console.error("Failed to read palette.txt:", err);
   }
 
-  const answers7 = await inquirer.prompt([
-        {
-          type: "input",
-          name: "showpoints",
-          message: "Show the points? (y/n)",
-          default: "y",
-        },
-      ]);
+  paletteLines.forEach((hex) => {
+    const rgba = hexToRGBA(hex);
+    const index = Math.floor(Math.random() * (colors.length + 1 - 1)) + 1;
+    if (answers.randomcolors) {
+        colors.splice(index, 0, rgba);
+    } else {
+        colors.push(rgba);
+    }
+  });
+
+  console.log("Found " + (colors.length - 1) + " colors :)");
 
   if (width < 1 || height < 1) {
     console.log(
@@ -197,7 +135,7 @@ let answers2
       const x = pixelIndex % width;
       const y = Math.floor(pixelIndex / width);
 
-      if (points.some(([px, py]) => Math.hypot(x - px, y - py) < 5) && answers7.showpoints == "y") {
+      if (points.some(([px, py]) => Math.hypot(x - px, y - py) < 5 && !answers.hidepoints)) {
         data[i] = 0; // R
         data[i + 1] = 0; // G
         data[i + 2] = 0; // B
@@ -266,7 +204,7 @@ let answers2
     const filename = path.join(__dirname, "output/as the body falls.png");
     fs.writeFileSync(filename, buffer);
 
-    console.log(`\nNice! Saved the image to ${filename}`);
+    process.stdout.write(`\r100%\nNice! Saved the image to ${filename}`);
   }
 }
 
