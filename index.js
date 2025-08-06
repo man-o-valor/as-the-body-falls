@@ -30,20 +30,21 @@ async function drawImage() {
     }
   });
 
-  const paletteNames = Object.entries(palettes).map(([name, hexList]) => {
+  const paletteChoices = Object.entries(palettes).map(([name, hexList]) => {
     const blocks = hexList
       .map((hex) => {
         const r = parseInt(hex.slice(0, 2), 16);
         const g = parseInt(hex.slice(2, 4), 16);
         const b = parseInt(hex.slice(4, 6), 16);
         const a = hex.length === 8 ? parseInt(hex.slice(6, 8), 16) : 255;
-
         const block = a < 32 ? " " : a < 128 ? "░" : a < 200 ? "▒" : "█";
-        return (`\x1b[38;2;${r};${g};${b}m` + block + `\x1b[0m`);
+        return `\x1b[38;2;${r};${g};${b}m` + block + `\x1b[0m`;
       })
       .join("");
-
-    return `${name} ${blocks}`;
+    return {
+      name: `${name} ${blocks}`,
+      value: name,
+    };
   });
 
   const answers = await inquirer.prompt([
@@ -63,7 +64,7 @@ async function drawImage() {
       type: "input",
       name: "gravity",
       message: "Enter the strength of gravity:",
-      default: "10",
+      default: "4",
     },
     {
       type: "input",
@@ -87,13 +88,20 @@ async function drawImage() {
       type: "list",
       name: "palette",
       message: "Choose a palette:",
-      choices: paletteNames,
+      choices: paletteChoices,
     },
     {
       type: "confirm",
       name: "randomcolors",
       message: "Do you want to shuffle colors randomly?",
       default: false,
+    },
+    {
+      type: "input",
+      name: "physicsticks",
+      message:
+        "How many physics processes should be run before the simulation gives up?",
+      default: "30000",
     },
   ]);
 
@@ -162,7 +170,7 @@ async function drawImage() {
     }
   });
 
-  console.log("Found " + (colors.length - 1) + " colors :)");
+  console.log("Found " + colors.length + " colors :)");
   if (paletteLines.length + 1 < numPoints) {
     console.error(
       `/!\\ Only ${
@@ -203,7 +211,7 @@ async function drawImage() {
           let collidedIndex = -1;
           let repeats = 0;
 
-          while (true && repeats < 100000) {
+          while (true && repeats < parseInt(answers.physicsticks)) {
             repeats += 1;
             let ax = 0,
               ay = 0;
