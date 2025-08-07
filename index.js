@@ -65,6 +65,20 @@ async function drawImage() {
       name: "gravity",
       message: "Enter the strength of gravity:",
       default: "4",
+      validate: (input) => {
+        const val = parseInt(input);
+        return val >= 0 ? true : "Drag must be between 0 and 1";
+      },
+    },
+    {
+      type: "input",
+      name: "drag",
+      message: "Enter the drag coefficient (0 = no drag, 1 = max drag):",
+      default: "0.5",
+      validate: (input) => {
+        const val = parseFloat(input);
+        return val >= 0 && val <= 1 ? true : "Drag must be between 0 and 1";
+      },
     },
     {
       type: "input",
@@ -95,6 +109,7 @@ async function drawImage() {
       name: "randomcolors",
       message: "Do you want to shuffle colors randomly?",
       default: false,
+      when: (answers) => answers.manual === true,
     },
     {
       type: "input",
@@ -108,6 +123,10 @@ async function drawImage() {
   const width = parseInt(answers.width);
   const height = parseInt(answers.height);
   const gravity = parseFloat(answers.gravity);
+  const longerSide = Math.max(width, height);
+  const baseDrag = 0.0005 * 2;
+  const drag =
+    parseFloat(answers.drag) * baseDrag * Math.pow(512 / longerSide, 2);
   const numPoints = parseInt(answers.numPoints);
 
   let points = [];
@@ -217,15 +236,17 @@ async function drawImage() {
 
             for (let j = 0; j < points.length; j++) {
               const [ox, oy] = points[j];
-              const dx = ox - px;
-              const dy = oy - py;
+              // Scale all distances to a 512x512 reference
+              const dx = (ox - px) * (512 / longerSide);
+              const dy = (oy - py) * (512 / longerSide);
               const distSq = dx * dx + dy * dy;
 
-              if (distSq < 5) {
+              if (distSq < 5 * Math.pow(512 / longerSide, 2)) {
                 collidedIndex = j;
                 break;
               }
 
+              // Gravity force calculation scaled to reference size
               const force = gravity / distSq;
               const dist = Math.sqrt(distSq);
               ax += force * (dx / dist);
@@ -236,6 +257,8 @@ async function drawImage() {
 
             vx += ax;
             vy += ay;
+            vx *= 1 - drag;
+            vy *= 1 - drag;
             px += vx;
             py += vy;
           }
