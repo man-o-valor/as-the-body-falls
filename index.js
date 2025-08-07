@@ -1,5 +1,5 @@
 const inquirer = require("inquirer");
-const { createCanvas } = require("canvas");
+const { PNG } = require("pngjs");
 const fs = require("fs");
 const path = require("path");
 
@@ -15,6 +15,7 @@ async function drawImage() {
   const rawData = fs.readFileSync(path.join(__dirname, "palettes.txt"), "utf8");
   const lines = rawData.split(/\r?\n/);
   const palettes = {};
+  let currentPalette;
   lines.forEach((line) => {
     const trimmed = line.trim();
     if (!trimmed) return;
@@ -53,12 +54,20 @@ async function drawImage() {
       name: "width",
       message: "Enter the width of the picture:",
       default: "512",
+      validate: (input) => {
+        const val = parseInt(input);
+        return val >= 0 ? true : "width must be a positive number";
+      },
     },
     {
       type: "input",
       name: "height",
       message: "Enter the height of the picture:",
       default: "512",
+      validate: (input) => {
+        const val = parseInt(input);
+        return val >= 0 ? true : "height must be a positive number";
+      },
     },
     {
       type: "input",
@@ -67,17 +76,27 @@ async function drawImage() {
       default: "4",
       validate: (input) => {
         const val = parseInt(input);
-        return val >= 0 ? true : "Drag must be between 0 and 1";
+        return val >= 0 ? true : "Gravity must be a positive number";
       },
     },
     {
       type: "input",
       name: "drag",
       message: "Enter the drag coefficient (0 = no drag, 1 = max drag):",
-      default: "0.5",
+      default: "0.2",
       validate: (input) => {
         const val = parseFloat(input);
         return val >= 0 && val <= 1 ? true : "Drag must be between 0 and 1";
+      },
+    },
+    {
+      type: "input",
+      name: "collisionRadius",
+      message: "Enter the collision radius for gravity points (in pixels):",
+      default: "5",
+      validate: (input) => {
+        const val = parseFloat(input);
+        return val > 0 ? true : "Collision radius must be a positive number";
       },
     },
     {
@@ -128,9 +147,16 @@ async function drawImage() {
   const drag =
     parseFloat(answers.drag) * baseDrag * Math.pow(512 / longerSide, 2);
   const numPoints = parseInt(answers.numPoints);
+  const collisionRadius = parseFloat(answers.collisionRadius);
+
+  const outputDir = path.join(__dirname, "output");
+  const baseName = "as the body falls";
+  const extension = ".png";
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir);
+  }
 
   let points = [];
-
   if (answers.manual) {
     for (let i = 0; i < numPoints; i++) {
       const pointAnswer = await inquirer.prompt([
@@ -196,31 +222,23 @@ async function drawImage() {
       } colors, cannot draw ${numPoints} points! Add more colors by editing palette.txt`
     );
   } else {
-    if (width < 1 || height < 1) {
-      console.log(
-        "Those dimensions don't look right. Make sure they're positive numbers above 0!"
-      );
-    } else {
-      const canvas = createCanvas(width, height);
-      const ctx = canvas.getContext("2d");
+    const png = new PNG({ width, height });
 
-      const imageData = ctx.createImageData(width, height);
-      const data = imageData.data;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const pixelIndex = i / 4;
-        const x = pixelIndex % width;
-        const y = Math.floor(pixelIndex / width);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = (width * y + x) << 2;
 
         if (
           points.some(
-            ([px, py]) => Math.hypot(x - px, y - py) < 5 && !answers.hidepoints
+            ([px, py]) =>
+              Math.hypot(x - px, y - py) < collisionRadius &&
+              !answers.hidepoints
           )
         ) {
-          data[i] = 0; // R
-          data[i + 1] = 0; // G
-          data[i + 2] = 0; // B
-          data[i + 3] = 255; // A
+          png.data[idx] = 0; // R
+          png.data[idx + 1] = 0; // G
+          png.data[idx + 2] = 0; // B
+          png.data[idx + 3] = 255; // A
         } else {
           let [px, py] = [x, y];
 
@@ -236,17 +254,15 @@ async function drawImage() {
 
             for (let j = 0; j < points.length; j++) {
               const [ox, oy] = points[j];
-              // Scale all distances to a 512x512 reference
               const dx = (ox - px) * (512 / longerSide);
               const dy = (oy - py) * (512 / longerSide);
               const distSq = dx * dx + dy * dy;
 
-              if (distSq < 5 * Math.pow(512 / longerSide, 2)) {
+              if (distSq < Math.pow(collisionRadius * (512 / longerSide), 2)) {
                 collidedIndex = j;
                 break;
               }
 
-              // Gravity force calculation scaled to reference size
               const force = gravity / distSq;
               const dist = Math.sqrt(distSq);
               ax += force * (dx / dist);
@@ -264,17 +280,19 @@ async function drawImage() {
           }
 
           if (collidedIndex == -1) {
-            data[i] = colors[0][0]; // R
-            data[i + 1] = colors[0][1]; // G
-            data[i + 2] = colors[0][2]; // B
-            data[i + 3] = colors[0][3]; // A
+            png.data[idx] = colors[0][0]; // R
+            png.data[idx + 1] = colors[0][1]; // G
+            png.data[idx + 2] = colors[0][2]; // B
+            png.data[idx + 3] = colors[0][3]; // A
           } else {
-            data[i] = colors[collidedIndex + 1][0]; // R
-            data[i + 1] = colors[collidedIndex + 1][1]; // G
-            data[i + 2] = colors[collidedIndex + 1][2]; // B
-            data[i + 3] = colors[collidedIndex + 1][3]; // A
+            const col = colors[collidedIndex + 1] || colors[0];
+            png.data[idx] = col[0]; // R
+            png.data[idx + 1] = col[1]; // G
+            png.data[idx + 2] = col[2]; // B
+            png.data[idx + 3] = col[3]; // A
           }
         }
+        const pixelIndex = y * width + x;
         if (
           Math.floor(pixelIndex / ((width * height) / 100)) !=
           Math.floor((pixelIndex - 1) / ((width * height) / 100))
@@ -283,36 +301,36 @@ async function drawImage() {
           process.stdout.write(`\r${progress}%`);
         }
       }
-
-      const outputDir = path.join(__dirname, "output");
-      const baseName = "as the body falls";
-      const extension = ".png";
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir);
-      }
-      const files = fs.readdirSync(outputDir);
-      let nextIndex = 1;
-      const regex = new RegExp(`^${baseName} (\\d+)${extension}$`);
-
-      files.forEach((file) => {
-        const match = file.match(regex);
-        if (match) {
-          const index = parseInt(match[1], 10);
-          if (index >= nextIndex) {
-            nextIndex = index + 1;
-          }
-        }
-      });
-      const filename = path.join(
-        outputDir,
-        `${baseName} ${nextIndex}${extension}`
-      );
-      ctx.putImageData(imageData, 0, 0);
-      const buffer = canvas.toBuffer("image/png");
-      fs.writeFileSync(filename, buffer);
-
-      process.stdout.write(`\r100%\nNice! Saved the image to ${filename}`);
     }
+
+    const files = fs.readdirSync(outputDir);
+    let nextIndex = 1;
+    const regex = new RegExp(`^${baseName} (\\d+)${extension}$`);
+
+    files.forEach((file) => {
+      const match = file.match(regex);
+      if (match) {
+        const index = parseInt(match[1], 10);
+        if (index >= nextIndex) {
+          nextIndex = index + 1;
+        }
+      }
+    });
+    const filename = path.join(
+      outputDir,
+      `${baseName} ${nextIndex}${extension}`
+    );
+
+    png.text = {
+      Title: "as the body falls",
+      Author: "Man-o-Valor",
+      Description:
+        "Generated by https://github.com/man-o-valor/as-the-body-falls/\nThis is not an AI-generated image.",
+    };
+
+    const outputBuffer = PNG.sync.write(png);
+    fs.writeFileSync(filename, outputBuffer);
+    process.stdout.write(`\r100%\nNice! Saved the image to ${filename}`);
   }
 }
 
