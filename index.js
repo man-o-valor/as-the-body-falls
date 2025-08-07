@@ -52,7 +52,7 @@ async function drawImage() {
     {
       type: "input",
       name: "width",
-      message: "Enter the width of the picture:",
+      message: "Width:",
       default: "512",
       validate: (input) => {
         const val = parseInt(input);
@@ -62,7 +62,7 @@ async function drawImage() {
     {
       type: "input",
       name: "height",
-      message: "Enter the height of the picture:",
+      message: "Height:",
       default: "512",
       validate: (input) => {
         const val = parseInt(input);
@@ -72,7 +72,7 @@ async function drawImage() {
     {
       type: "input",
       name: "gravity",
-      message: "Enter the strength of gravity:",
+      message: "Gravity:",
       default: "4",
       validate: (input) => {
         const val = parseInt(input);
@@ -82,8 +82,8 @@ async function drawImage() {
     {
       type: "input",
       name: "drag",
-      message: "Enter the drag coefficient (0 = no drag, 1 = max drag):",
-      default: "0.2",
+      message: "Drag (0-1):",
+      default: "0.1",
       validate: (input) => {
         const val = parseFloat(input);
         return val >= 0 && val <= 1 ? true : "Drag must be between 0 and 1";
@@ -92,7 +92,7 @@ async function drawImage() {
     {
       type: "input",
       name: "collisionRadius",
-      message: "Enter the collision radius for gravity points (in pixels):",
+      message: "Radius:",
       default: "5",
       validate: (input) => {
         const val = parseFloat(input);
@@ -102,39 +102,38 @@ async function drawImage() {
     {
       type: "input",
       name: "numPoints",
-      message: "Enter the number of gravitational points:",
+      message: "Number of Points:",
       default: "3",
     },
     {
       type: "confirm",
       name: "manual",
-      message: "Do you want to manually choose points' positions?",
+      message: "Manual Point Positions?",
       default: false,
     },
     {
       type: "confirm",
-      name: "hidepoints",
-      message: "Do you want to hide the gravitational points?",
-      default: true,
+      name: "showpoints",
+      message: "Show Points?",
+      default: false,
     },
     {
       type: "list",
       name: "palette",
-      message: "Choose a palette:",
+      message: "Palette:",
       choices: paletteChoices,
     },
     {
       type: "confirm",
       name: "randomcolors",
-      message: "Do you want to shuffle colors randomly?",
+      message: "Random Colors?",
       default: false,
       when: (answers) => answers.manual === true,
     },
     {
       type: "input",
       name: "physicsticks",
-      message:
-        "How many physics processes should be run before the simulation gives up?",
+      message: "Give Up Timer:",
       default: "30000",
     },
   ]);
@@ -231,8 +230,7 @@ async function drawImage() {
         if (
           points.some(
             ([px, py]) =>
-              Math.hypot(x - px, y - py) < collisionRadius &&
-              !answers.hidepoints
+              Math.hypot(x - px, y - py) < collisionRadius && answers.showpoints
           )
         ) {
           png.data[idx] = 0; // R
