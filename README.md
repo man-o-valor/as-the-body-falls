@@ -31,3 +31,5 @@ Clone this repository in your terminal with `git clone` or download it from this
 ## Custom Palettes
 
 The included `palettes.txt` has lots of palettes for you to try, but feel free to edit it and add your own! Palette names can have spaces and as many colors as you want. The first color is the failure color and might not show up on some high-drag images.
+
+![Example 4](/example4.png)
