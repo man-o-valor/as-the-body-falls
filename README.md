@@ -1,4 +1,4 @@
-# ☄️ as the body falls 🗺️
+# ☄️ as the body falls 🌀
 
 Welcome to the repository for **as the body falls**, a node applicaton for your terminal that generates images based on falling planets. It supports custom palettes, planets, and parameters, and there's endless possibilities and permutations!
 
