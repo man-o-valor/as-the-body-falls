@@ -170,7 +170,6 @@ async function drawImage() {
     }
   });
 
-  console.log("Found " + colors.length + " colors :)");
   if (paletteLines.length + 1 < numPoints) {
     console.error(
       `/!\\ Only ${
