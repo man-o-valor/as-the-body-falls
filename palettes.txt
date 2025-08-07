@@ -156,3 +156,15 @@ retro
 #01cbcf
 #0188a5
 #3e3264
+
+blackhole
+#ffffff
+#000000
+#0d001a
+#33004d
+#660033
+#993300
+#cc4d00
+#ff9900
+#ffcc4d
+#e6f2ff
