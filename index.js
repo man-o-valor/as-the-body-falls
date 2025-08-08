@@ -83,7 +83,7 @@ async function drawImage() {
       type: "input",
       name: "drag",
       message: "Drag (0-1):",
-      default: "0.1",
+      default: "0.05",
       validate: (input) => {
         const val = parseFloat(input);
         return val >= 0 && val <= 1 ? true : "Drag must be between 0 and 1";

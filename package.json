@@ -1,13 +1,15 @@
 {
   "name": "as-the-body-falls",
-  "version": "1.0.0",
-  "description": "make pictures with falling planets",
+  "version": "1.0.1",
+  "description": "make art from falling planets",
   "license": "ISC",
-  "author": "",
+  "author": "Man-o-Valor",
   "type": "commonjs",
   "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-    "canvas": "^3.1.2",
     "inquirer": "^8.2.6",
     "pngjs": "^7.0.0"
   }
