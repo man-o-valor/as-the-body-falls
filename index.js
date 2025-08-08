@@ -131,6 +131,12 @@ async function drawImage() {
       when: (answers) => answers.manual === true,
     },
     {
+      type: "confirm",
+      name: "lightenBySteps",
+      message: "Darken by Time?",
+      default: false,
+    },
+    {
       type: "input",
       name: "physicsticks",
       message: "Give Up Timer:",
@@ -227,6 +233,21 @@ async function drawImage() {
       for (let x = 0; x < width; x++) {
         const idx = (width * y + x) << 2;
 
+        function lightenColor(color, repeats) {
+          const maxDistance = Math.sqrt(width * width + height * height);
+          const distance = repeats;
+          let blend = 1 - Math.min(1, Math.max(0, distance / maxDistance));
+          const minFactor = 1.0;
+          const maxFactor = 0.3;
+          const factor = minFactor - blend * (minFactor - maxFactor);
+          return [
+            Math.round(color[0] * factor),
+            Math.round(color[1] * factor),
+            Math.round(color[2] * factor),
+            color[3],
+          ];
+        }
+
         if (
           points.some(
             ([px, py]) =>
@@ -239,55 +260,62 @@ async function drawImage() {
           png.data[idx + 3] = 255; // A
         } else {
           let [px, py] = [x, y];
-
           let vx = 0,
             vy = 0;
           let collidedIndex = -1;
           let repeats = 0;
+          let totalDistance = 0;
 
           while (true && repeats < parseInt(answers.physicsticks)) {
             repeats += 1;
             let ax = 0,
               ay = 0;
-
             for (let j = 0; j < points.length; j++) {
               const [ox, oy] = points[j];
               const dx = (ox - px) * (512 / longerSide);
               const dy = (oy - py) * (512 / longerSide);
               const distSq = dx * dx + dy * dy;
-
               if (distSq < Math.pow(collisionRadius * (512 / longerSide), 2)) {
                 collidedIndex = j;
                 break;
               }
-
               const force = gravity / distSq;
               const dist = Math.sqrt(distSq);
               ax += force * (dx / dist);
               ay += force * (dy / dist);
             }
-
             if (collidedIndex >= 0) break;
-
             vx += ax;
             vy += ay;
             vx *= 1 - drag;
             vy *= 1 - drag;
+            const prevPx = px,
+              prevPy = py;
             px += vx;
             py += vy;
+            totalDistance += Math.sqrt(
+              (px - prevPx) * (px - prevPx) + (py - prevPy) * (py - prevPy)
+            );
           }
 
           if (collidedIndex == -1) {
-            png.data[idx] = colors[0][0]; // R
-            png.data[idx + 1] = colors[0][1]; // G
-            png.data[idx + 2] = colors[0][2]; // B
-            png.data[idx + 3] = colors[0][3]; // A
+            let color = colors[0];
+            if (answers.lightenBySteps) {
+              color = lightenColor(color, totalDistance);
+            }
+            png.data[idx] = color[0]; // R
+            png.data[idx + 1] = color[1]; // G
+            png.data[idx + 2] = color[2]; // B
+            png.data[idx + 3] = color[3]; // A
           } else {
-            const col = colors[collidedIndex + 1] || colors[0];
-            png.data[idx] = col[0]; // R
-            png.data[idx + 1] = col[1]; // G
-            png.data[idx + 2] = col[2]; // B
-            png.data[idx + 3] = col[3]; // A
+            let color = colors[collidedIndex + 1] || colors[0];
+            if (answers.lightenBySteps) {
+              color = lightenColor(color, totalDistance);
+            }
+            png.data[idx] = color[0]; // R
+            png.data[idx + 1] = color[1]; // G
+            png.data[idx + 2] = color[2]; // B
+            png.data[idx + 3] = color[3]; // A
           }
         }
         const pixelIndex = y * width + x;
