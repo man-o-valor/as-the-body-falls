@@ -105,7 +105,7 @@ module.exports = {
     const drag =
       parseFloat(interaction.options.getString("drag") ?? "0.05") *
       baseDrag *
-      Math.pow(512 / longerSide, 2);
+      Math.pow(200 / longerSide, 2);
     const numPoints = parseInt(interaction.options.getString("points") ?? "3");
     const collisionRadius = parseInt(
       interaction.options.getString("radius") ?? "5"
