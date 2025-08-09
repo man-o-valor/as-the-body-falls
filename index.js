@@ -2,6 +2,7 @@ const inquirer = require("inquirer");
 const { PNG } = require("pngjs");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
 const hexToRGBA = (hex) => {
   const r = parseInt(hex.slice(0, 2), 16);
@@ -154,11 +155,14 @@ async function drawImage() {
   const numPoints = parseInt(answers.numPoints);
   const collisionRadius = parseFloat(answers.collisionRadius);
 
-  const outputDir = path.join(__dirname, "output");
-  const baseName = "as the body falls";
-  const extension = ".png";
+  const outputDir = path.join(
+    os.homedir(),
+    "Downloads",
+    "as-the-body-falls-output"
+  );
+
   if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
+    fs.mkdirSync(outputDir, { recursive: true });
   }
 
   let points = [];
