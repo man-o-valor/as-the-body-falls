@@ -2,3 +2,4 @@ output
 package-lock.json
 node_modules
 desktop.ini
+config.json
