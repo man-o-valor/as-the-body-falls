@@ -16,7 +16,7 @@ module.exports = {
     .setName("atbf")
     .setDescription("Generate an image with as the body falls")
     .addStringOption((option) =>
-      option.setName("width").setDescription("Width of the image (default 512)")
+      option.setName("width").setDescription("Size of the image (default 200)")
     )
     .addStringOption((option) =>
       option
@@ -97,8 +97,8 @@ module.exports = {
       }
     });
 
-    const width = parseInt(interaction.options.getString("width") ?? "512");
-    const height = parseInt(interaction.options.getString("width") ?? "512");
+    const width = parseInt(interaction.options.getString("width") ?? "200");
+    const height = parseInt(interaction.options.getString("width") ?? "200");
     const gravity = parseInt(interaction.options.getString("precision") ?? "4");
     const longerSide = Math.max(width, height);
     const baseDrag = 0.0005 * 2;
