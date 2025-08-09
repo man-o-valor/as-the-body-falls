@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, AttachmentBuilder } = require("discord.js");
+const { SlashCommandBuilder, AttachmentBuilder, heading } = require("discord.js");
 const { PNG } = require("pngjs");
 const fs = require("fs");
 const path = require("path");
@@ -16,12 +16,12 @@ module.exports = {
     .setName("atbf")
     .setDescription("Generate an image with as the body falls")
     .addStringOption((option) =>
-      option.setName("width").setDescription("Width of the image (default 200)")
+      option.setName("width").setDescription("Width of the image (default 200, max 400)")
     )
     .addStringOption((option) =>
       option
         .setName("height")
-        .setDescription("Height of the image (default 200)")
+        .setDescription("Height of the image (default 200, max 400)")
     )
     .addStringOption((option) =>
       option.setName("precision").setDescription("Length of a tick (default 4)")
@@ -97,8 +97,14 @@ module.exports = {
       }
     });
 
-    const width = parseInt(interaction.options.getString("width") ?? "200");
-    const height = parseInt(interaction.options.getString("height") ?? "200");
+    let width = parseInt(interaction.options.getString("width") ?? "200");
+    let height = parseInt(interaction.options.getString("height") ?? "200");
+    if (width > 400) {
+      width = 400;
+    }
+    if (height > 400) {
+      height = 400;
+    }
     const gravity = parseInt(interaction.options.getString("precision") ?? "4");
     const longerSide = Math.max(width, height);
     const baseDrag = 0.0005 * 2;
