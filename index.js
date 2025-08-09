@@ -161,6 +161,8 @@ async function drawImage() {
     "as-the-body-falls-output"
   );
 
+  const baseName = "as the body falls";
+  const extension = ".png";
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
@@ -361,6 +363,7 @@ async function drawImage() {
     const outputBuffer = PNG.sync.write(png);
     fs.writeFileSync(filename, outputBuffer);
     process.stdout.write(`\r100%\nNice! Saved the image to ${filename}`);
+    process.stdin.resume();
   }
 }
 
