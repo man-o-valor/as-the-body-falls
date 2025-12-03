@@ -186,11 +186,7 @@ async function drawImage() {
   const numPoints = parseInt(answers.numPoints);
   const collisionRadius = parseFloat(answers.collisionRadius);
 
-  const outputDir = path.join(
-    os.homedir(),
-    "Downloads",
-    "as-the-body-falls-output"
-  );
+  const outputDir = path.join(__dirname, "output");
 
   const baseName = "as the body falls";
   const extension = ".png";
