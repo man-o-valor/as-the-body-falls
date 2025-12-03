@@ -14,18 +14,20 @@ Clone this repository in your terminal with `git clone` or download it from this
 
 ## Parameter index
 
-- Width | The width of the image
-- Height | The width of the image
-- Gravity | The precision of the image, lower number = more precise
-- Drag | The simplicity of the image, lower number = more complex
-- Radius | Collision radius of each gravity point, lower number = slower calculation, more precise
-- Number of Points | Number of gravity points in the image, higher number = more colors, faster, more chaotic
-- Manual Point Positions? | Choose whether to have the points randomly placed or choose their placement manually. Both choices can make beautifully organized or chaotic pictures :)
-- Show Points? | Choose whether to render the points in the image or have them invisible. Render size affected by Radius
-- Palette | Choose the palette to render the image in. Depending on Number of Points, some palettes may not have enough colors. Also see Custom Palettes!
-- Random Colors? | Choose whether to shuffle the colors in the palette randomly or keep them in order. Only appears if Manual Point Positions is Yes
-- Darken by Time? | Choose whether to have the image darken more when the planets fall into a point more quickly. Points themselves are the most modified parts of the image. Use a palette with similar brightnesses in colors if you want to make sense of it, otherwise just acts as a cool bloom/depth effect.
-- Give Up Timer | Number of physics steps the renderer takes before it calls it a day and marks a pixel with the failure color, higher number = slower calculation, possibly more complete images
+| Parameter | Significance |
+| :-- | :-- |
+| Width | The width of the image |
+| Height | The width of the image |
+| Gravity | The precision of the image, lower number = more precise |
+| Drag | The simplicity of the image, lower number = more complex |
+| Radius | Collision radius of each gravity point, lower number = slower calculation, more precise |
+| Number of Points | Number of gravity points in the image, higher number = more colors, faster, more chaotic |
+| Manual Point Positions? | Choose whether to have the points randomly placed or choose their placement manually |
+| Show Points? | Choose whether to render the points in the image or have them invisible. Render size affected by Radius |
+| Palette | Choose the palette to render the image in. Depending on Number of Points, some palettes may not have enough colors. Also see Custom Palettes!
+| Random Colors? | Choose whether to shuffle the colors in the palette randomly or keep them in order. Only appears if Manual Point Positions is Yes |
+| Darken by Time? | Choose whether to have the image darken more when the planets fall into a point more quickly. Points themselves are the most modified parts of the image. Use a palette with similar brightnesses in colors if you want to make sense of it, otherwise just acts as a cool bloom/depth effect |
+| Give Up Timer | Number of physics steps the renderer takes before it calls it a day and marks a pixel with the failure color, higher number = slower calculation, possibly more complete images |
 
 ![Example 3](/example3.png)
 
